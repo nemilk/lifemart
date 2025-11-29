@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Списание Жизньмарт</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Официальная палитра Жизньмарт */
+            --zm-green: #3F9E37;        /* Основной зеленый */
+            --zm-green-hover: #5CBD54;
+            --zm-bg: #F1F4F3;           /* Светло-серый фон */
+            --zm-text: #0C1F1A;         /* Темный текст */
+            --zm-text-secondary: #5B6765;
+            --zm-card-bg: #FFFFFF;
+            --zm-danger: #EC6338;       /* Акцентный оранжевый/красный для удалений */
+            --zm-border-radius: 24px;   /* Скругление карточек */
+            --zm-btn-radius: 99px;      /* Скругление кнопок */
+        }
+
+        [data-theme="dark"] {
+            --zm-green: #3F9E37;
+            --zm-green-hover: #5CBD54;
+            --zm-bg: #121212;
+            --zm-text: #F1F4F3;
+            --zm-text-secondary: #A0A0A0;
+            --zm-card-bg: #1E1E1E;
+            --zm-danger: #FF6B6B;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'PT Sans', sans-serif;
+            background-color: var(--zm-bg);
+            color: var(--zm-text);
+            margin: 0;
+            padding: 16px;
+            padding-bottom: 140px; /* Место под футер */
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden; /* Блокируем горизонтальный скролл */
+        }
+
+        /* Шапка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--zm-green);
+        }
+        
+        /* Логотип листик (упрощенный SVG) */
+        .brand-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .theme-toggle {
+            background: var(--zm-card-bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Общие стили контейнера */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Карточка добавления времени */
+        .add-time-card {
+            background: var(--zm-card-bg);
+            border-radius: var(--zm-border-radius);
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* Поля ввода */
+        input {
+            background: #F7F7F7;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--zm-text);
+            width: 100%;
+            transition: 0.2s;
+        }
+        
+        [data-theme="dark"] input {
+            background: #2C2C2C;
+        }
+
+        input:focus {
+            border-color: var(--zm-green);
+            background: var(--zm-card-bg);
+        }
+
+        /* Кнопки */
+        .btn {
+            border: none;
+            border-radius: var(--zm-btn-radius);
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: var(--zm-green);
+            color: white;
+            padding: 0 20px;
+            height: 48px; /* Высота как на сайте */
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        /* Сетка списка */
+        .categories-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Карточка категории */
+        .category-card {
+            background: var(--zm-card-bg);
+            border-radius: var(--zm-border-radius);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .cat-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .del-cat-btn {
+            font-size: 13px;
+            color: var(--zm-text-secondary);
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        /* Список товаров */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            line-height: 1.3;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .item-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .item-name {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        /* Бейджик количества */
+        .qty-badge {
+            background: var(--zm-bg);
+            color: var(--zm-text);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 99px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .qty-badge.alert {
+            background: #FFF0ED;
+            color: var(--zm-danger);
+        }
+        
+        [data-theme="dark"] .qty-badge.alert {
+            background: #4a1a1a;
+        }
+
+        .btn-del-item {
+            margin-left: 8px;
+            color: #ccc;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .btn-del-item:hover { color: var(--zm-danger); }
+
+        /* Форма добавления */
+        .add-item-form {
+            display: flex;
+            gap: 8px;
+            position: relative;
+        }
+
+        .add-item-form input[type="text"] {
+            flex: 1;
+            min-width: 0; /* Исправляет переполнение на мобилках */
+        }
+
+        .add-item-form input[type="number"] {
+            width: 60px;
+            text-align: center;
+            padding: 12px 4px;
+        }
+
+        .btn-plus {
+            width: 44px;
+            height: 44px; /* Квадратная кнопка */
+            padding: 0;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        /* Выпадашка (Автокомплит) */
+        .suggestions-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 70%;
+            background: var(--zm-card-bg);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-top: none;
+        }
+
+        .suggestion {
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        
+        .suggestion:active { background: var(--zm-bg); }
+        .suggestion strong { color: var(--zm-green); }
+
+        /* Футер (Floating) */
+        .bottom-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 580px;
+            display: flex;
+            gap: 10px;
+            z-index: 900;
+            background: var(--zm-card-bg); /* Подложка для тени */
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .btn-copy {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--zm-text-secondary);
+            width: 48px;
+            font-size: 20px;
+        }
+
+        /* Тост (Уведомление) */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 14px;
+            opacity: 0;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <svg class="brand-icon" viewBox="0 0 29 18">
+                    <path d="M13.7996 15.3581C13.7996 15.3581 13.6627 15.4751 13.164 15.4751C12.6654 15.4751 12.4575 14.9641 12.3646 14.1921C12.1616 12.1388 12.0656 10.0763 12.0767 8.01307C12.0767 5.03708 11.8699 1.38107 13.8146 1.18607C13.8743 0.844493 14.0558 0.536153 14.3254 0.318253C14.595 0.100353 14.9344 -0.0123381 15.2807 0.00107286C16.5689 0.00107286 16.325 2.37707 16.329 8.01307C16.329 13.7131 15.7294 15.8621 14.864 15.8621C13.9985 15.8621 13.7996 15.3581 13.7996 15.3581Z" fill="#3F9E37"></path>
+<path d="M19.7143 16.0698C19.2856 15.3128 19.9532 13.5448 22.8014 10.7028C25.6495 7.86078 27.2065 6.66579 27.8981 7.53779C28.0274 7.73024 28.0988 7.9558 28.1038 8.18768C28.1088 8.41955 28.0471 8.64797 27.9261 8.84579C28.179 9.0563 28.3562 9.3437 28.4309 9.6643C28.5056 9.9849 28.4736 10.3211 28.3398 10.6218C27.9001 11.7628 25.1419 13.4928 23.8737 15.0628C22.6055 16.6328 21.6061 17.9428 20.5508 17.3238C20.4088 17.2275 20.3019 17.0877 20.2462 16.9254C20.1906 16.763 20.189 16.587 20.242 16.4238C20.0351 16.3603 19.8515 16.2372 19.7143 16.0698Z" fill="#3F9E37"></path>
+<path d="M0.337544 8.18523C1.87154 6.29023 4.07814 9.5852 4.07814 9.5852C4.07814 9.5852 5.56724 9.9092 7.38604 12.5852C9.20494 15.2612 8.59525 16.3032 8.59525 16.3032C8.58985 16.5064 8.53395 16.7051 8.43255 16.8812C8.33115 17.0574 8.18755 17.2055 8.01465 17.3122C7.81835 17.4175 7.59975 17.4747 7.37705 17.479C7.15435 17.4833 6.93374 17.4348 6.73344 17.3372C6.73344 17.3372 4.97055 15.7122 2.84295 13.5642C0.715245 11.4162 -0.674856 9.4352 0.337544 8.18523Z" fill="#3F9E37"></path>
+                </svg>
+                Жизньмарт
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        </div>
+
+        <div class="add-time-card">
+            <input type="time" id="newTimeInput">
+            <button class="btn btn-primary btn-plus" onclick="addNewTimeCategory()">+</button>
+        </div>
+
+        <div id="app" class="categories-grid">
+            </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn btn-reset" onclick="resetAll()" title="Очистить всё">🗑</button>
+        <button class="btn btn-primary btn-copy" onclick="exportToClipboard()">
+            Скопировать список
+        </button>
+    </div>
+
+    <div id="toast" class="toast">
+        <span>✅</span> <span id="toastMsg">Скопировано!</span>
+    </div>
+
+<script>
+    const DEFAULT_CATEGORIES = [
+        { id: 'def-1', name: 'До 20:00', timeVal: 1200, items: [] },
+        { id: 'def-2', name: 'До 21:00', timeVal: 1260, items: [] },
+        { id: 'def-3', name: 'На закрытие', timeVal: 9999, items: [] }
+    ];
+
+    let data = {
+        categories: [],
+        history: []
+    };
+
+    function init() {
+        loadTheme();
+        loadData();
+        // Закрываем саджесты при клике вне
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.add-item-form')) {
+                closeAllSuggestions();
+            }
+        });
+    }
+
+    function loadData() {
+        const raw = localStorage.getItem('zm_spisok_v2_fix');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            data.categories = parsed.categories || JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+            data.history = parsed.history || [];
+        } else {
+            data.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        }
+        render();
+    }
+
+    function saveData() {
+        localStorage.setItem('zm_spisok_v2_fix', JSON.stringify(data));
+    }
+
+    function loadTheme() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeBtn').textContent = '☀️';
+        }
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            document.getElementById('themeBtn').textContent = '🌙';
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            document.getElementById('themeBtn').textContent = '☀️';
+        }
+    }
+
+    function parseTimeValue(timeStr) {
+        if (!timeStr) return 0;
+        if (timeStr.toLowerCase().includes('закрытие')) return 9999;
+        const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+        return match ? parseInt(match[1]) * 60 + parseInt(match[2]) : 0;
+    }
+
+    function addNewTimeCategory() {
+        const input = document.getElementById('newTimeInput');
+        if (!input.value) return;
+
+        const name = `До ${input.value}`;
+        const val = parseTimeValue(input.value);
+
+        if (data.categories.some(c => c.timeVal === val)) {
+            showToast("Такое время уже есть", true);
+            return;
+        }
+
+        data.categories.push({ id: Date.now().toString(), name, timeVal: val, items: [] });
+        data.categories.sort((a, b) => a.timeVal - b.timeVal);
+        
+        input.value = '';
+        saveData();
+        render();
+    }
+
+    function deleteCategory(id) {
+        if(confirm("Удалить категорию?")) {
+            data.categories = data.categories.filter(c => c.id !== id);
+            saveData();
+            render();
+        }
+    }
+
+    function addItem(catId) {
+        const nameInp = document.getElementById(`name-${catId}`);
+        const qtyInp = document.getElementById(`qty-${catId}`);
+        const name = nameInp.value.trim();
+        let qty = parseInt(qtyInp.value);
+        
+        if (!name) return;
+        if (isNaN(qty) || qty < 1) qty = 1;
+
+        const cat = data.categories.find(c => c.id === catId);
+        if (cat) {
+            cat.items.push({ name, qty });
+            if (!data.history.includes(name)) {
+                data.history.push(name);
+                data.history.sort();
+            }
+        }
+
+        nameInp.value = '';
+        qtyInp.value = '';
+        nameInp.focus();
+        closeAllSuggestions();
+        saveData();
+        render();
+    }
+
+    function deleteItem(catId, idx) {
+        const cat = data.categories.find(c => c.id === catId);
+        if (cat) {
+            cat.items.splice(idx, 1);
+            saveData();
+            render();
+        }
+    }
+
+    // --- Автокомплит ---
+    function handleInput(e, catId) {
+        const val = e.target.value.toLowerCase();
+        const list = document.getElementById(`sugg-${catId}`);
+        
+        if (!val) {
+            list.style.display = 'none';
+            return;
+        }
+
+        const matches = data.history.filter(h => h.toLowerCase().includes(val));
+        
+        if (matches.length === 0) {
+            list.style.display = 'none';
+            return;
+        }
+
+        list.innerHTML = '';
+        matches.slice(0, 4).forEach(match => {
+            const div = document.createElement('div');
+            div.className = 'suggestion';
+            const regex = new RegExp(`(${val})`, 'gi');
+            div.innerHTML = match.replace(regex, '<strong>$1</strong>');
+            div.onclick = () => {
+                document.getElementById(`name-${catId}`).value = match;
+                list.style.display = 'none';
+                document.getElementById(`qty-${catId}`).focus();
+            };
+            list.appendChild(div);
+        });
+        list.style.display = 'block';
+    }
+
+    function closeAllSuggestions() {
+        document.querySelectorAll('.suggestions-box').forEach(el => el.style.display = 'none');
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        app.innerHTML = '';
+
+        data.categories.forEach(cat => {
+            const isDef = ['До 20:00', 'До 21:00', 'На закрытие'].includes(cat.name);
+            
+            let itemsHtml = '';
+            cat.items.forEach((item, idx) => {
+                const isMany = item.qty > 3; 
+                const emoji = isMany ? ' ‼️' : '';
+                const badgeClass = isMany ? 'qty-badge alert' : 'qty-badge';
+                
+                // Если 1 шт - не показываем бейдж с кол-вом, только если >1 или если есть алерт
+                let badgeHtml = '';
+                if (item.qty > 1 || isMany) {
+                    badgeHtml = `<span class="${badgeClass}">${item.qty} шт${emoji}</span>`;
+                }
+
+                itemsHtml += `
+                    <div class="item-row">
+                        <div class="item-name">${item.name}</div>
+                        ${badgeHtml}
+                        <div class="btn-del-item" onclick="deleteItem('${cat.id}', ${idx})">×</div>
+                    </div>
+                `;
+            });
+
+            const div = document.createElement('div');
+            div.className = 'category-card';
+            div.innerHTML = `
+                <div class="cat-header">
+                    <span class="cat-title">${cat.name}</span>
+                    ${!isDef ? `<button class="del-cat-btn" onclick="deleteCategory('${cat.id}')">Удалить</button>` : ''}
+                </div>
+                
+                <div class="items-list">${itemsHtml}</div>
+
+                <div class="add-item-form">
+                    <input type="text" id="name-${cat.id}" 
+                           placeholder="Товар..." 
+                           autocomplete="off"
+                           oninput="handleInput(event, '${cat.id}')"
+                           onkeydown="if(event.key==='Enter') document.getElementById('qty-${cat.id}').focus()">
+                    
+                    <div id="sugg-${cat.id}" class="suggestions-box"></div>
+
+                    <input type="number" id="qty-${cat.id}" 
+                           placeholder="шт" 
+                           onkeydown="if(event.key==='Enter') addItem('${cat.id}')">
+                           
+                    <button class="btn btn-primary btn-plus" onclick="addItem('${cat.id}')">+</button>
+                </div>
+            `;
+            app.appendChild(div);
+        });
+    }
+
+    function getTomorrow() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function exportToClipboard() {
+        const active = data.categories.filter(c => c.items.length > 0);
+        if (active.length === 0) {
+            showToast('Список пуст 🤷‍♂️', true);
+            return;
+        }
+
+        let t = `#список на ${getTomorrow()}\n\n`;
+        
+        active.forEach(cat => {
+            t += `${cat.name}\n`;
+            cat.items.forEach(item => {
+                const isMany = item.qty > 3; 
+                const emoji = isMany ? '❗' : '';
+                const qtyStr = item.qty > 1 ? ` ${item.qty} шт` : '';
+                t += `- ${item.name}${qtyStr}${emoji}\n`;
+            });
+            t += '\n';
+        });
+
+        navigator.clipboard.writeText(t).then(() => {
+            showToast('Список скопирован!');
+        }).catch(() => showToast('Ошибка доступа к буферу', true));
+    }
+
+    function resetAll() {
+        if(confirm("Очистить весь список?")) {
+            data.categories.forEach(c => c.items = []);
+            saveData();
+            render();
+        }
+    }
+
+    function showToast(txt, isErr=false) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMsg').innerText = txt;
+        t.style.background = isErr ? 'var(--zm-danger)' : '#323232';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    init();
+</script>
+</body>
+</html>
